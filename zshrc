@@ -116,8 +116,101 @@ alias ll='eza -la --icons'
 alias cat='batcat'
 alias lg='lazygit'
 
+# --- Alias generales ---
+alias c='clear'
+alias h='history'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ports='ss -tulnp'
+alias myip='curl -s ifconfig.me'
+
+# --- Pentesting / HTB ---
+alias recon='~/tools/scripts/recon.sh'
+alias linpeas='~/tools/peass/linpeas.sh'
+alias serve='python3 -m http.server 8000'
+alias htbvpn='sudo openvpn ~/tools/htb/*.ovpn'
+alias pwncat='pwncat-cs'
+
+# --- tmux ---
+alias tn='tmux new -s'
+alias ta='tmux attach -t'
+alias tl='tmux ls'
+
+# --- git ---
+alias gs='git status'
+alias ga='git add .'
+alias gc='git commit -m'
+alias gp='git push'
+
 bindkey '^[[A' history-substring-search-up 
 bindkey '^[[B' history-substring-search-down
 
+# --- Funciones HTB ---
+htb-new() {
+  if [[ "$1" == "-h" || "$1" == "--help" || -z "$1" ]]; then
+    echo "Uso: htb-new <nombre> <ip>"
+    echo "  Crea la estructura de carpetas para una máquina de HTB y abre tmux."
+    echo "  Ejemplo: htb-new forest 10.10.10.161"
+    return 0
+  fi
+  local name=$1
+  local ip=$2
+  mkdir -p ~/htb/$name/{nmap,loot,exploits,notes}
+  cd ~/htb/$name
+  echo "# $name ($ip)" > notes/notes.md
+  echo "Estructura creada en ~/htb/$name"
+  tmux new -s "$name"
+}
+nmapfull() {
+  if [[ "$1" == "-h" || "$1" == "--help" || -z "$1" ]]; then
+    echo "Uso: nmapfull <ip> [nombre]"
+    echo "  Escaneo rápido de todos los puertos abiertos (formato greppable)."
+    echo "  Ejemplo: nmapfull 10.10.10.161 forest"
+    return 0
+  fi
+  local ip=$1
+  local name=${2:-scan}
+  mkdir -p ~/htb/$name/nmap
+  nmap -p- --open -sS --min-rate 5000 -vvv -n -Pn $ip -oG ~/htb/$name/nmap/allPorts
+  echo "Resultado guardado en ~/htb/$name/nmap/allPorts"
+}
+
+extractPorts() {
+  if [[ "$1" == "-h" || "$1" == "--help" || -z "$1" ]]; then
+    echo "Uso: extractPorts <archivo-oG-de-nmap>"
+    echo "  Extrae los puertos abiertos y la IP, y copia los puertos al portapapeles."
+    echo "  Ejemplo: extractPorts ~/htb/forest/nmap/allPorts"
+    return 0
+  fi
+  local file=$1
+  ports="$(grep -oP '\d{1,5}/open' $file | awk -F '/' '{print $1}' | sort -n | tr '\n' ',' | sed 's/,$//')"
+  ip_addr="$(grep -oP '(\d{1,3}\.){3}\d{1,3}' $file | head -n 1)"
+  echo -e "\n[+] Extrayendo información...\n"
+  echo -e "\t[+] IP: $ip_addr"
+  echo -e "\t[+] Puertos abiertos: $ports\n"
+  echo $ports | tr -d '\n' | xclip -sel clip
+  echo -e "[+] Puertos copiados al portapapeles\n"
+}
+
+targeted() {
+  if [[ "$1" == "-h" || "$1" == "--help" || -z "$1" ]]; then
+    echo "Uso: targeted <ip> [nombre]"
+    echo "  Lanza un escaneo detallado (-sC -sV) sobre los puertos"
+    echo "  que tengas copiados en el portapapeles (de extractPorts)."
+    echo "  Ejemplo: targeted 10.10.10.161 forest"
+    return 0
+  fi
+  local ip=$1
+  local name=${2:-scan}
+  local ports=$(xclip -sel clip -o)
+  if [[ -z "$ports" ]]; then
+    echo "[-] No hay puertos en el portapapeles. Ejecuta extractPorts primero."
+    return 1
+  fi
+  mkdir -p ~/htb/$name/nmap
+  echo "[+] Escaneando puertos: $ports"
+  nmap -p$ports -sC -sV -oN ~/htb/$name/nmap/targeted $ip
+  echo "Resultado guardado en ~/htb/$name/nmap/targeted"
+}
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

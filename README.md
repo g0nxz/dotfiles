@@ -13,37 +13,37 @@ Configuración personal para Kali Linux (ARM64, VMware Fusion en Apple Silicon).
 ## Instalación en una VM nueva
 
 ### Zsh + Oh My Zsh + Powerlevel10k
-\`\`\`bash
+```bash
 sudo apt install zsh -y
 chsh -s $(which zsh)
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.oh-my-zsh/custom/themes/powerlevel10k
 cp zshrc ~/.zshrc
 source ~/.zshrc
-\`\`\`
+```
 
 ### Neovim + NvChad
-\`\`\`bash
+```bash
 curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-arm64.tar.gz
 sudo tar -C /opt -xzf nvim-linux-arm64.tar.gz
 sudo ln -sf /opt/nvim-linux-arm64/bin/nvim /usr/local/bin/nvim
 cp -r nvim ~/.config/nvim
 nvim  # instala plugins automáticamente
-\`\`\`
+```
 Dentro de Neovim, instalar vía `:Mason`: basedpyright, bash-language-server.
 
 ### Terminator
-\`\`\`bash
+```bash
 sudo apt install terminator -y
 mkdir -p ~/.config/terminator
 cp terminator/config ~/.config/terminator/config
-\`\`\`
+```
 
 ### tmux
-\`\`\`bash
+```bash
 sudo apt install tmux -y
 cp tmux.conf ~/.tmux.conf
-\`\`\`
+```
 
 ## Herramientas adicionales instaladas (no versionadas aquí)
 
